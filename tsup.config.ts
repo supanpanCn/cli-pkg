@@ -6,5 +6,5 @@ export const tsup: Options = {
   dts: {
     resolve: true,
   },
-  entry:['src/index.js']
+  entry:['src/index.ts']
 };
