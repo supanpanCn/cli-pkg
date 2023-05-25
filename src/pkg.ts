@@ -1,24 +1,28 @@
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { log } from "./helpers";
+import { TInnerContext } from "./helpers";
+export interface Pkg {
+  name: string;
+  version: string;
+  scripts: string;
+  url: string;
+}
 
-function load() {
+function load(ctx: TInnerContext) {
   try {
     const url = resolve(process.cwd(), "package.json");
     const pkg: any = JSON.parse(readFileSync(url, "utf-8"));
     return {
-      version: pkg.version,
-      scripts: pkg.scripts,
-      name: pkg.name,
+      ...pkg,
       url,
-    };
+    } as Pkg;
   } catch (_) {
-    log("LOAD_PKG");
+    ctx.log!("LOAD_PKG");
     process.exit(1);
   }
 }
 
-function update(url: string, version: string) {
+function updateVersion(url: string, version: string) {
   if (existsSync(url)) {
     let code = readFileSync(url, "utf-8");
     const reg = /"[\s]*?version[\s]*?"[\s]*?:[\s]*?"(.*?)"/g;
@@ -26,11 +30,11 @@ function update(url: string, version: string) {
     if (Array.isArray(m)) {
       code = code.replace(m[0], `"version":"${version}"`);
     }
-    writeFileSync(url!, code,"utf-8");
+    writeFileSync(url!, code, "utf-8");
   }
 }
 
 export default {
   load,
-  update,
+  updateVersion,
 };

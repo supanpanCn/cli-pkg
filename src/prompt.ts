@@ -1,6 +1,7 @@
 // @ts-nocheck
 import enquirer from "enquirer";
 import semver from "semver";
+import { executeTypes } from './helpers'
 
 async function isLogin() {
   const { isLogin } = await enquirer.prompt({
@@ -10,35 +11,6 @@ async function isLogin() {
     initial: true,
   });
   return isLogin;
-}
-
-async function validateGit() {
-  const { isMatched } = await enquirer.prompt({
-    type: "confirm",
-    name: "isMatched",
-    message:
-      "是否校验当前分支与远程分支匹配？由于网络连接原因，这可能需要花费较长时间，请确认！",
-    initial: false,
-  });
-  return isMatched;
-}
-
-async function build() {
-  const { needBuild } = await enquirer.prompt({
-    type: "confirm",
-    name: "needBuild",
-    message: "是否需要执行打包操作",
-    initial: false,
-  });
-  return needBuild;
-}
-
-async function runBuild(scripts) {
-  const script = await enquirer.select({
-    message: "请选择打包脚本",
-    choices: Object.keys(scripts),
-  });
-  return script;
 }
 
 async function genVersion(initialVersion) {
@@ -54,22 +26,36 @@ async function genVersion(initialVersion) {
   return version;
 }
 
-async function updatePkg(version:string) {
+async function updatePkg(version:string,updateType:'release'|'tag'|'publish') {
+  let message = ''
+  switch(updateType){
+    case 'publish':
+      message = `npm包已发布，是否将新的版本号(${version})更新到package.json文件`
+      break
+  }
   const { isUpdate } = await enquirer.prompt({
     type: "confirm",
     name: "isUpdate",
-    message:
-      `已成功发布npm，是否将新的版本号(${version})更新到package.json文件`,
+    message,
     initial: true,
   });
   return isUpdate;
 }
 
+async function executeType() {
+  const script = await enquirer.select({
+    message: "请选择操作",
+    choices: Object.keys(executeTypes),
+    result(value){
+      return executeTypes[value]
+    }
+  });
+  return script;
+}
+
 export default {
   isLogin,
-  validateGit,
-  build,
-  runBuild,
   genVersion,
   updatePkg,
+  executeType
 };

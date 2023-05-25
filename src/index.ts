@@ -1,39 +1,46 @@
-import validate from "./validate";
 import prompt from "./prompt";
 import pkgHooks from "./pkg";
-import { log, exec, NPM_REGISTER_ADDRESS } from "./helpers";
+import publish from "./publish";
+import release from "./release";
+import validate from "./validate";
+import tag from "./tag";
+import { config, beforePublish, createDoPlugin, success } from "./plugin";
+import { initLog, exec, TInnerContext, TPlugin, TMessageKey } from "./helpers";
+export type { TContext, TPlugin } from "./helpers";
 
-async function main() {
-    // 分类：tag、release、publish
-  if (await validate()) {
-    const pkg = pkgHooks.load();
-    if (pkg) {
-      await exec("npm", ["set", "registry", NPM_REGISTER_ADDRESS]);
-      log("CHANGE_NPM", "green");
-      if (await prompt.isLogin()) {
-        if (await prompt.build()) {
-            const npmscript = await prompt.runBuild(pkg.scripts)
-            if(npmscript){
-                await exec("npm", ["run",npmscript]);
-            }
-        }
-        const version = await prompt.genVersion(pkg.version)
-        log("START_PUBLISH_NPM","green",{
-            version,
-            name:pkg.name
-        })
-
-        // await exec("npm",["publish"])
-
-        if(await prompt.updatePkg(version)){
-            pkgHooks.update(pkg.url,version)
-
-        }
-
-
-      }
-    }
-  }
+async function createContext(userPlugins?: TPlugin[]) {
+  const buildInPlugins: TPlugin[] = [config, beforePublish, success];
+  const plugins: TPlugin[] = [...buildInPlugins, ...(userPlugins || [])];
+  const ctx: TInnerContext = {
+    lifecycle: "config",
+    config: {
+      runAt: "",
+      allowedBranch: [],
+      ignoreGitChangeFiles: [],
+    },
+    restart: () => {},
+    quit: () => process.exit(1),
+    shared: {},
+    exec,
+    plugins,
+    validate,
+  };
+  ctx.pkg = pkgHooks.load(ctx);
+  ctx.runPluginTasks = createDoPlugin(ctx);
+  return ctx as Required<TInnerContext>;
 }
 
-main();
+export async function cli(userPlugins?: TPlugin[]) {
+  const ctx = await createContext(userPlugins);
+  await ctx.runPluginTasks("config");
+  ctx.log = initLog<TMessageKey>(ctx.config.runAt);
+  ctx.restart = () => {
+    cli(userPlugins);
+  };
+  const type = await prompt.executeType();
+  if (type === 1) await publish.call(ctx);
+  if (type === 2) await release.call(ctx);
+  if (type === 3) await tag.call(ctx);
+  await ctx.runPluginTasks("success");
+  return ctx;
+}

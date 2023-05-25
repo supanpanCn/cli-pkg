@@ -1,16 +1,15 @@
 {
-  "name": "publish-pkg",
-  "version": "0.0.0",
+  "name": "cli-pkg",
+  "version": "0.0.1",
   "description": "provides interactive commands to publish npm packages and generate releases and tags",
   "packageManager": "yarn@1.2.9",
-  "bin": {
-    "publish-pkg": "./bin/publish.js"
-  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch src"
   },
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "author": "supanpan",
   "license": "MIT",
   "files": [
@@ -34,12 +33,14 @@
   "dependencies": {
     "enquirer": "^2.3.6",
     "execa": "^7.1.1",
+    "lodash-es": "^4.17.21",
     "minimist": "^1.2.8",
     "p-series": "^3.0.0",
     "semver": "^7.5.1",
     "su-helpers": "^0.0.57"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.7",
     "@types/minimist": "^1.2.2",
     "@types/node": "^20.2.0",
     "@types/semver": "^7.5.0",
