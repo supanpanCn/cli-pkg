@@ -1,9 +1,16 @@
-import { PKG_NAME, TPlugin, TContext } from "../../helpers";
+import { TPlugin, TContext } from "../../helpers";
+import prompt from "../../prompt";
 
 const config: TPlugin = async function (ctx: TContext) {
-  ctx.config.runAt = PKG_NAME
-  ctx.config.allowedBranch = ["main"]
-  ctx.config.ignoreGitChangeFiles = ['yarn.lock','package-lock.json','pnpm-lock.yaml','yarn-error.log']
+  ctx.config.ignoreGitChangeFiles = [
+    ...new Set(ctx.config.ignoreGitChangeFiles),
+  ];
+
+  if (await prompt.requestChangeToNpm(ctx.config.registry)) {
+    await ctx.exec("npm", ["set", "registry", ctx.config.registry]);
+  } else {
+    ctx.quit();
+  }
 };
 
 config.lifecycle = "config";

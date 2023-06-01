@@ -2,28 +2,53 @@ import prompt from "./prompt";
 import pkgHooks from "./pkg";
 import publish from "./publish";
 import release from "./release";
-import validate from "./validate";
 import tag from "./tag";
-import { config, beforePublish, createDoPlugin, success } from "./plugin";
-import { initLog, exec, TInnerContext, TPlugin, TMessageKey } from "./helpers";
+import validate from "./validate";
+import {
+  config,
+  beforePublish,
+  afterPublish,
+  beforeRelease,
+  createDoPlugin,
+  success,
+} from "./plugin";
+import {
+  initLog,
+  exec,
+  createDefaultConfig,
+  TInnerContext,
+  TPlugin,
+  TMessageKey,
+  initSpinner,
+} from "./helpers";
 export type { TContext, TPlugin } from "./helpers";
 
 async function createContext(userPlugins?: TPlugin[]) {
-  const buildInPlugins: TPlugin[] = [config, beforePublish, success];
-  const plugins: TPlugin[] = [...buildInPlugins, ...(userPlugins || [])];
+  const outPlugins = userPlugins || [];
+  outPlugins.push(config);
+  const buildInPlugins: TPlugin[] = [
+    beforePublish,
+    beforeRelease,
+    afterPublish,
+    success,
+  ];
+  const plugins: TPlugin[] = [...buildInPlugins, ...outPlugins];
   const ctx: TInnerContext = {
     lifecycle: "config",
-    config: {
-      runAt: "",
-      allowedBranch: [],
-      ignoreGitChangeFiles: [],
-    },
+    config: createDefaultConfig(),
+    spinner: initSpinner(),
     restart: () => {},
-    quit: () => process.exit(1),
+    quit: function () {
+      this.spinner.stop();
+      process.exit(1);
+    },
     shared: {},
     exec,
     plugins,
     validate,
+    release,
+    publish,
+    tag,
   };
   ctx.pkg = pkgHooks.load(ctx);
   ctx.runPluginTasks = createDoPlugin(ctx);

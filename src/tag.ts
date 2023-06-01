@@ -1,4 +1,4 @@
-import { exec, NPM_REGISTER_ADDRESS,TContext } from "./helpers";
+import { exec,TContext } from "./helpers";
 import prompt from "./prompt";
 
 export default async function (this:TContext) {

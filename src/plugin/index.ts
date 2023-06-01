@@ -1,6 +1,8 @@
-import { TInnerContext, TContext, TLifycycle } from "../helpers";
+import { TInnerContext, TContext, TLifycycle,TPlugin } from "../helpers";
 export { default as config } from "./before/config";
 export { default as beforePublish } from "./before/publish";
+export { default as afterPublish } from "./after/publish";
+export { default as beforeRelease } from "./before/release";
 export { default as success } from "./success";
 import pSeries from "p-series";
 
@@ -10,6 +12,6 @@ export function createDoPlugin(ctx: TInnerContext) {
     const willDo = ctx.plugins
       .filter((p) => p.lifecycle === lifecycle)
       .map((d) => () => d(ctx as TContext));
-    await pSeries(willDo as any[]);
+    await pSeries<()=>TPlugin>(willDo);
   };
 }

@@ -7,10 +7,40 @@ async function isLogin() {
   const { isLogin } = await enquirer.prompt({
     type: "confirm",
     name: "isLogin",
-    message: "是否已登陆npm？",
+    message: "无法获取当前登陆用户，请手动检查当前登陆的npm账户，并确认是否继续？",
     initial: true,
   });
   return isLogin;
+}
+
+async function checkLoginedUser(username) {
+  const { next } = await enquirer.prompt({
+    type: "confirm",
+    name: "next",
+    message: `检测到当前登陆的npm账号为：${username}，请确认是否继续？`,
+    initial: true,
+  });
+  return next;
+}
+
+async function requestChangeToNpm(registry) {
+  const { next } = await enquirer.prompt({
+    type: "confirm",
+    name: "next",
+    message: `请求切换到npm：${registry}`,
+    initial: true,
+  });
+  return next;
+}
+
+async function requestDoReleaseAfterPublish() {
+  const { next } = await enquirer.prompt({
+    type: "confirm",
+    name: "next",
+    message: `已成功发布npm，是否生成Release`,
+    initial: true,
+  });
+  return next;
 }
 
 async function genVersion(initialVersion) {
@@ -24,6 +54,14 @@ async function genVersion(initialVersion) {
     initial: input,
   });
   return version;
+}
+
+async function commit() {
+  const commitInfo = await enquirer.input({
+    message: `请为当前commit添加备注`,
+    initial: '配置github Actions',
+  });
+  return commitInfo;
 }
 
 async function updatePkg(version:string,updateType:'release'|'tag'|'publish') {
@@ -53,9 +91,26 @@ async function executeType() {
   return script;
 }
 
+async function githubActions(ctx) {
+  const { isSetup } = await enquirer.prompt({
+    type: "confirm",
+    name: "isSetup",
+    message:`检测到您还未配置github Actions，是否允许${ctx.config.runAt}帮您自动创建？`,
+    initial: true,
+  });
+  return isSetup;
+}
+
+
+
 export default {
   isLogin,
+  commit,
   genVersion,
   updatePkg,
-  executeType
+  executeType,
+  githubActions,
+  checkLoginedUser,
+  requestChangeToNpm,
+  requestDoReleaseAfterPublish
 };
