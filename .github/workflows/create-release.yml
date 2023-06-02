@@ -4,17 +4,20 @@ on:
     branches:
       - main
 
+permissions: {}
 jobs:
   create-release:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@master
       - name: Create Release for Tag
-        uses: yyx990803/release-tag@master
         id: release_tag
+        uses: yyx990803/release-tag@master
         env:
-          SECRET_KEY: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
       
