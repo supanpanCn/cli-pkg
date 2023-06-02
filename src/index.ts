@@ -1,9 +1,7 @@
 import prompt from "./prompt";
 import pkgHooks from "./pkg";
-import publish from "./publish";
-import release from "./release";
-import tag from "./tag";
 import validate from "./validate";
+import { initGithubActions, publishNpm, createRelease, createTag } from "./steps";
 import {
   config,
   beforePublish,
@@ -16,7 +14,7 @@ import {
   initLog,
   exec,
   createDefaultConfig,
-  TInnerContext,
+  TContext,
   TPlugin,
   TMessageKey,
   initSpinner,
@@ -33,7 +31,7 @@ async function createContext(userPlugins?: TPlugin[]) {
     success,
   ];
   const plugins: TPlugin[] = [...buildInPlugins, ...outPlugins];
-  const ctx: TInnerContext = {
+  const ctx: TContext = {
     lifecycle: "config",
     config: createDefaultConfig(),
     spinner: initSpinner(),
@@ -46,13 +44,14 @@ async function createContext(userPlugins?: TPlugin[]) {
     exec,
     plugins,
     validate,
-    release,
-    publish,
-    tag,
+    initGithubActions,
+    publishNpm,
+    createTag,
+    createRelease,
   };
   ctx.pkg = pkgHooks.load(ctx);
   ctx.runPluginTasks = createDoPlugin(ctx);
-  return ctx as Required<TInnerContext>;
+  return ctx as Required<TContext>;
 }
 
 export async function cli(userPlugins?: TPlugin[]) {
@@ -63,9 +62,10 @@ export async function cli(userPlugins?: TPlugin[]) {
     cli(userPlugins);
   };
   const type = await prompt.executeType();
-  if (type === 1) await publish.call(ctx);
-  if (type === 2) await release.call(ctx);
-  if (type === 3) await tag.call(ctx);
+  if (type === 1) await ctx.publishNpm();
+  if (type === 2) await ctx.createRelease();
+  if (type === 3) await ctx.createTag();
+  if (type === 4) await ctx.initGithubActions();
   await ctx.runPluginTasks("success");
   return ctx;
 }

@@ -4,9 +4,12 @@ import ora from "ora";
 import { execa, Options } from "execa";
 import { createDoPlugin } from "./plugin";
 import validate from "./validate";
-import publish from "./publish";
-import release from "./release";
-import tag from "./tag";
+import {
+  initGithubActions,
+  publishNpm,
+  createRelease,
+  createTag,
+} from "./steps";
 export { _dirname } from "su-helpers/node";
 export { runArr } from "su-helpers";
 export type { AnyObj } from "su-helpers";
@@ -23,7 +26,7 @@ export type TLifycycle =
   | "before:release"
   | "after:release";
 
-export interface TInnerContext {
+export interface TContext {
   lifecycle: TLifycycle;
   exec: typeof exec;
   plugins: TPlugin[];
@@ -35,10 +38,11 @@ export interface TInnerContext {
     registry: string;
   };
   spinner: ReturnType<typeof initSpinner>;
-  publish: typeof publish;
-  release: typeof release;
+  publishNpm: typeof publishNpm;
+  initGithubActions: typeof initGithubActions;
+  createRelease: typeof createRelease;
+  createTag: typeof createTag;
   validate: typeof validate;
-  tag: typeof tag;
   restart: () => void;
   shared: AnyObj;
   quit: () => void;
@@ -46,8 +50,6 @@ export interface TInnerContext {
   log?: ReturnType<typeof initLog>;
   runPluginTasks?: ReturnType<typeof createDoPlugin>;
 }
-
-export type TContext = Omit<Required<TInnerContext>, "plugins">;
 
 export interface TPlugin {
   (ctx: TContext): Promise<any>;
@@ -74,6 +76,7 @@ export const executeTypes = {
   发布npm包: 1,
   发布release: 2,
   发布tag: 3,
+  "初始化github Actions": 4,
 };
 
 export const messages = new Map<keyof TMessageKey, string | Function>([
@@ -137,7 +140,7 @@ export function createDefaultConfig() {
     ],
     packageManage: "npm",
     registry: "https://registry.npmjs.org/",
-  } as TInnerContext["config"];
+  } as TContext["config"];
 }
 
 // ------------- function definition -------------

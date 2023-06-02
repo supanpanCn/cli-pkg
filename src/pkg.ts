@@ -1,6 +1,6 @@
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { TInnerContext } from "./helpers";
+import { TContext } from "./helpers";
 export interface Pkg {
   name: string;
   version: string;
@@ -8,7 +8,7 @@ export interface Pkg {
   url: string;
 }
 
-function load(ctx: TInnerContext) {
+function load(ctx: TContext) {
   try {
     const url = resolve(process.cwd(), "package.json");
     const pkg: any = JSON.parse(readFileSync(url, "utf-8"));
