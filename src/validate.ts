@@ -39,13 +39,14 @@ async function githubActions(ctx: TContext) {
     if(await prompt.githubActions(ctx)){
       const dir = _dirname('cli-pkg')
       if(dir){
-        ctx.initGithubActions(dir,prefix)
+        await ctx.initGithubActions(dir,prefix)
         return true
       }
     }
   }
   return false
 }
+
 
 export default {
   branch,

@@ -14,13 +14,15 @@ export default async function (
   prefix = prefix || resolve(process.cwd(), ".github", "workflows", "release");
   if (dir) {
     copySync(
-      resolve(dir, "..", "..", "release.yml"),
+      resolve(dir, "..", "..", ".github","workflows",'create-release.yml'),
       resolve(prefix, "..", "release.yml")
     );
     this.log!("SETUP_ACTIONS", "green");
-    this.exec("git", ["add", "."]);
+    await this.exec("git", ["add", "."]);
     const input = await prompt.commit();
-    this.exec("git", ["commit", "-m", input]);
-    this.exec("git", ["push"]);
+    console.log(input,'输入是啥啊')
+    debugger
+    await this.exec("git", ["commit", "-m", input]);
+    await this.exec("git", ["push"]);
   }
 }
