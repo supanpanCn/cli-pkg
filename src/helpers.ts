@@ -46,6 +46,7 @@ export interface TContext {
     ignoreGitChangeFiles: string[];
     packageManage: "npm" | "pnpm" | "yarn" | "cnpm";
     registry: string;
+    createReleaseBaseOnPkgVersion?:boolean;
   };
   prompt: typeof prompt;
   spinner: ReturnType<typeof initSpinner>;
@@ -96,8 +97,8 @@ export const REGISTRY = "https://registry.npmjs.org/";
 
 export const executeTypes = {
   发布npm包: 1,
-  发布release: 2,
-  发布tag: 3,
+  创建release: 2,
+  创建tag: 3,
 };
 
 export const messages = new Map<keyof TMessageKey, string | Function>([
@@ -229,6 +230,7 @@ export function createDefaultConfig() {
     ],
     packageManage: "npm",
     registry: "https://registry.npmjs.org/",
+    createReleaseBaseOnPkgVersion:false
   } as TContext["config"];
 }
 
