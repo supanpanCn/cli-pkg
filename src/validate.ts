@@ -1,8 +1,6 @@
-import { runArr, TContext , _dirname } from "./helpers";
-import { resolve } from 'node:path'
-import { existsSync } from 'node:fs'
-import prompt from './prompt'
-
+import { runArr, TContext, _dirname } from "./helpers";
+import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 
 async function branch(ctx: TContext) {
   const { allowedBranch } = ctx.config;
@@ -34,22 +32,26 @@ async function gitClean(ctx: TContext) {
 }
 
 async function githubActions(ctx: TContext) {
-  const prefix = resolve(process.cwd(),'.github','workflows','release')
-  if(!existsSync(resolve(prefix,'.yml')) && !existsSync(resolve(prefix,'.yaml'))){
-    if(await prompt.githubActions(ctx)){
-      const dir = _dirname('cli-pkg')
-      if(dir){
-        await ctx.initGithubActions(dir,prefix)
-        return true
+  const prefix = resolve(process.cwd(), ".github", "workflows");
+  const msg = `检测到您还未配置github Actions，是否允许${ctx.config.runAt}帮您自动创建？`;
+  if (
+    !existsSync(resolve(prefix, "release.yml")) &&
+    !existsSync(resolve(prefix, "release.yaml"))
+  ) {
+    if (await ctx.prompt.confirm(msg)) {
+      const dir = _dirname("cli-pkg");
+      if (dir) {
+        await ctx.initGithubActions(dir, prefix);
       }
+    } else {
+      return false;
     }
   }
-  return false
+  return true;
 }
-
 
 export default {
   branch,
   gitClean,
-  githubActions
+  githubActions,
 };

@@ -1,7 +1,7 @@
 {
   "name": "cli-pkg",
   "version": "0.0.1",
-  "description": "provides interactive commands to publish npm packages and generate releases and tags",
+  "description": "npm包辅助工具",
   "packageManager": "yarn@1.2.9",
   "scripts": {
     "build": "tsup",
@@ -21,13 +21,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/supanpanCn/publish-pkg"
+    "url": "git+https://github.com/supanpanCn/cli-pkg"
   },
   "keywords": [
     "npm",
     "publish",
     "frontend",
     "package",
+    "tag",
     "npm-tool"
   ],
   "dependencies": {
@@ -39,7 +40,6 @@
     "lodash-es": "^4.17.21",
     "minimist": "^1.2.8",
     "ora": "^6.3.1",
-    "p-series": "^3.0.0",
     "semver": "^7.5.1",
     "su-helpers": "^0.0.57"
   },

@@ -1,7 +1,12 @@
-import prompt from "./prompt";
 import pkgHooks from "./pkg";
 import validate from "./validate";
-import { initGithubActions, publishNpm, createRelease, createTag } from "./steps";
+import prompt from "./prompt";
+import {
+  initGithubActions,
+  publishNpm,
+  createRelease,
+  createTag,
+} from "./steps";
 import {
   config,
   beforePublish,
@@ -18,6 +23,9 @@ import {
   TPlugin,
   TMessageKey,
   initSpinner,
+  executeTypes,
+  yarnrc,
+  stopAfterPlugin
 } from "./helpers";
 export type { TContext, TPlugin } from "./helpers";
 
@@ -38,16 +46,19 @@ async function createContext(userPlugins?: TPlugin[]) {
     restart: () => {},
     quit: function () {
       this.spinner.stop();
+      yarnrc.unlink()
       process.exit(1);
     },
     shared: {},
     exec,
+    prompt,
     plugins,
     validate,
     initGithubActions,
     publishNpm,
     createTag,
     createRelease,
+    stopAfterPlugin
   };
   ctx.pkg = pkgHooks.load(ctx);
   ctx.runPluginTasks = createDoPlugin(ctx);
@@ -61,11 +72,18 @@ export async function cli(userPlugins?: TPlugin[]) {
   ctx.restart = () => {
     cli(userPlugins);
   };
-  const type = await prompt.executeType();
+  const keys = Object.keys(executeTypes)
+  let typeChinese = ''
+  const type = await ctx.prompt.select(keys, {
+    result(value:keyof (typeof executeTypes)) {
+      typeChinese = value
+      return executeTypes[value];
+    },
+  });
+  ctx.queueHead = typeChinese
   if (type === 1) await ctx.publishNpm();
   if (type === 2) await ctx.createRelease();
   if (type === 3) await ctx.createTag();
-  if (type === 4) await ctx.initGithubActions();
   await ctx.runPluginTasks("success");
   return ctx;
 }
