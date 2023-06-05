@@ -1,11 +1,13 @@
 import { TContext } from "../helpers";
 
 export default async function tag(this: TContext) {
+  this.log?.("CUSTOM","green","开始生成git tag")
+  const nextTag = `v${this.shared.nextVersion}`
   const form = await this.prompt.form("请填写表单", [
     {
       name: "tagName",
       message: "请填写tag名称",
-      initial: this.shared.latestTag || "",
+      initial: nextTag || "",
     },
     {
       name: "remark",
@@ -15,25 +17,29 @@ export default async function tag(this: TContext) {
   ]);
 
   if (!form.tagName) {
-    this.log?.("CUSTOM", "red", "请填写tagName");
+    this.log?.("CUSTOM", "yellow", "请填写tagName");
     this.stopAfterPlugin();
     await this.createTag();
     return;
   }
 
-  this.shared.latestTag = form.tagName;
+  this.shared.nextVersion = form.tagName;
 
   await this.runPluginTasks!("before:tag");
 
-  this.exec("git", ["tag", form.tagName, "-m", form.remark]);
-
-  if (this.rungingLifeCycle?.lifecycle.includes("tag")) {
-    this.spinner.start();
-    this.exec("git", ["push", "origin", form.tagName]);
-    this.spinner.stop();
+  let isBreak = false
+  const tagString = await this.exec('git',['tag'])
+  if(tagString){
+    const tags = tagString.split('\n')
+    if(tags.find(tag=>tag === form.tagName)){
+      isBreak = true
+    }
   }
+
+  !isBreak && await this.exec("git", ["tag", form.tagName, "-m", form.remark]);
+
+  this.log?.('CUSTOM',"green",`已生成tag，新tag为:${form.tagName}`)
 
   await this.runPluginTasks!("after:tag");
 
-  this.log?.('CUSTOM',"green","已完成Tag生成")
 }

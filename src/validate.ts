@@ -5,8 +5,8 @@ import { existsSync } from "node:fs";
 async function branch(ctx: TContext) {
   const { allowedBranch } = ctx.config;
   const actBranch = await ctx.exec("git", ["branch", "--show-current"]);
-  if (!allowedBranch.find((branch) => branch === actBranch)) {
-    ctx.log!("NONLICET_BRANCH", "red", actBranch);
+  if (!allowedBranch?.find((branch) => branch === actBranch)) {
+    ctx.log?.("CUSTOM", "red", `不支持在${actBranch}分支执行操作`);
     return false;
   }
   return true;
@@ -24,7 +24,7 @@ async function gitClean(ctx: TContext) {
       }
     });
     if (changes.length) {
-      ctx.log!("DIRTY_GIT", "red");
+      ctx.log?.("CUSTOM", "red","本地存在未commit的文件变动");
       return false;
     }
   }

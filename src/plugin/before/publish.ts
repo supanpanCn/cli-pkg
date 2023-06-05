@@ -8,17 +8,17 @@ const msgs = {
 };
 
 const publish: TPlugin = async function (ctx: TContext) {
-  const registry = ctx.config.registry;
+  const registry = ctx.config.registry!;
   if (await ctx.prompt.confirm(msgs.registry(registry))) {
     ctx.spinner.start();
-    yarnrc.check();
+    yarnrc.check(ctx);
     await sleep();
     await ctx.exec("npm", ["set", "registry", registry]);
     ctx.spinner.stop();
   } else {
     ctx.quit();
   }
-  ctx.log?.("CHANGE_NPM", "green");
+  ctx.log?.("CUSTOM", "green","已切换到npm");
 
   try {
     ctx.spinner.start();

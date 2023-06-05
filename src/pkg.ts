@@ -17,7 +17,7 @@ function load(ctx: TContext) {
       url,
     } as Pkg;
   } catch (_) {
-    ctx.log!("LOAD_PKG");
+    ctx.log?.("CUSTOM","red","package.json读取失败");
     process.exit(1);
   }
 }

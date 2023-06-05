@@ -25,18 +25,27 @@ import {
   initSpinner,
   executeTypes,
   yarnrc,
-  stopAfterPlugin
+  stopAfterPlugin,
+  getNextVersion
 } from "./helpers";
 export type { TContext, TPlugin } from "./helpers";
 
+async function setBaseVersion(ctx:TContext){
+  const guessVersion = getNextVersion(ctx.pkg?.version);
+  const version = await ctx.prompt.input(
+    `请确认要发布的版本号`,
+    guessVersion
+  );
+  ctx.shared.nextVersion = version
+}
+
 async function createContext(userPlugins?: TPlugin[]) {
   const outPlugins = userPlugins || [];
-  outPlugins.push(config);
+  outPlugins.push(...[config,success]);
   const buildInPlugins: TPlugin[] = [
     beforePublish,
     beforeRelease,
     afterPublish,
-    success,
   ];
   const plugins: TPlugin[] = [...buildInPlugins, ...outPlugins];
   const ctx: TContext = {
@@ -68,22 +77,25 @@ async function createContext(userPlugins?: TPlugin[]) {
 export async function cli(userPlugins?: TPlugin[]) {
   const ctx = await createContext(userPlugins);
   await ctx.runPluginTasks("config");
-  ctx.log = initLog<TMessageKey>(ctx.config.runAt);
+  ctx.log = initLog<TMessageKey>(ctx.config.runAt)
   ctx.restart = () => {
     cli(userPlugins);
   };
   const keys = Object.keys(executeTypes)
-  let typeChinese = ''
   const type = await ctx.prompt.select(keys, {
     result(value:keyof (typeof executeTypes)) {
-      typeChinese = value
       return executeTypes[value];
     },
   });
-  ctx.queueHead = typeChinese
-  if (type === 1) await ctx.publishNpm();
-  if (type === 2) await ctx.createRelease();
-  if (type === 3) await ctx.createTag();
+  if (type === 1){
+    await setBaseVersion(ctx)
+    await ctx[ctx.config.firstCall!]();
+  }
+  if (type === 2) {
+    ctx.log?.("CUSTOM","yellow","当前版本尚不支持,请重新选择")
+    ctx.restart()
+    return
+  };
   await ctx.runPluginTasks("success");
   return ctx;
 }
